@@ -1,7 +1,7 @@
 {
-  "name": "antigravity-python-typescript",
+  "name": "coding-agent-class",
   "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
- 
+
   "features": {
     "ghcr.io/devcontainers/features/python:1": {
       "version": "3.12"
@@ -13,16 +13,15 @@
       "installZsh": false
     }
   },
- 
+
   "postCreateCommand": "bash .devcontainer/setup.sh",
- 
+
   "customizations": {
     "vscode": {
       "extensions": [
         "ms-python.python",
         "ms-python.vscode-pylance",
         "charliermarsh.ruff",
-        "ms-vscode.vscode-typescript-next",
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
         "eamodio.gitlens"
@@ -30,10 +29,10 @@
       "settings": {
         "editor.formatOnSave": true,
         "python.defaultInterpreterPath": "/usr/local/bin/python",
-        "typescript.tsdk": "node_modules/typescript/lib"
+        "terminal.integrated.defaultProfile.linux": "bash"
       }
     }
   },
- 
+
   "remoteUser": "vscode"
 }
