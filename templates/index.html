@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ステラフォーチュン - 今日の運勢占い</title>
+    <!-- Meta Tags for SEO -->
+    <meta name="description" content="今日のあなたの運勢を天体の導きによって占います。名前と星座を入力するだけで、総合運、恋愛運、仕事運、金運、健康運、そしてラッキーアイテムとラッキーカラーを導き出します。">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Sans+JP:wght@300;400;500;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="stars"></div>
+    <div class="twinkling"></div>
+    <div class="nebula"></div>
+
+    <main class="container">
+        <header class="app-header">
+            <h1 class="logo">STELLA FORTUNE</h1>
+            <p class="subtitle">天体が囁く、今日のあなたの運命</p>
+        </header>
+
+        <!-- Input Form Section -->
+        <section id="input-section" class="card fade-in">
+            <div class="card-body">
+                <h2 class="card-title"><i class="fa-solid fa-wand-magic-sparkles"></i> 運勢を鑑定する</h2>
+                <form id="fortune-form" onsubmit="submitFortune(event)">
+                    <div class="form-group">
+                        <label for="user-name">お名前 <span class="required">*</span></label>
+                        <input type="text" id="user-name" name="name" required placeholder="例: ひなた" autocomplete="off">
+                    </div>
+
+                    <div class="form-group">
+                        <label>12星座を選択 <span class="required">*</span></label>
+                        <div class="zodiac-grid">
+                            {% for sign in zodiac_signs %}
+                            <label class="zodiac-item" id="zodiac-label-{{ loop.index }}">
+                                <input type="radio" name="zodiac" value="{{ sign }}" required>
+                                <span class="zodiac-icon">
+                                    {% if sign == '牡羊座' %}<i class="fa-solid fa-aries"></i>
+                                    {% elif sign == '牡牛座' %}<i class="fa-solid fa-taurus"></i>
+                                    {% elif sign == '双子座' %}<i class="fa-solid fa-gemini"></i>
+                                    {% elif sign == '蟹座' %}<i class="fa-solid fa-cancer"></i>
+                                    {% elif sign == '獅子座' %}<i class="fa-solid fa-leo"></i>
+                                    {% elif sign == '乙女座' %}<i class="fa-solid fa-virgo"></i>
+                                    {% elif sign == '天秤座' %}<i class="fa-solid fa-libra"></i>
+                                    {% elif sign == '蠍座' %}<i class="fa-solid fa-scorpio"></i>
+                                    {% elif sign == '射手座' %}<i class="fa-solid fa-sagittarius"></i>
+                                    {% elif sign == '山羊座' %}<i class="fa-solid fa-capricorn"></i>
+                                    {% elif sign == '水瓶座' %}<i class="fa-solid fa-aquarius"></i>
+                                    {% elif sign == '魚座' %}<i class="fa-solid fa-pisces"></i>
+                                    {% endif %}
+                                </span>
+                                <span class="zodiac-name">{{ sign }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-glow" id="btn-submit">
+                        <span class="btn-text">運命の扉を開く</span>
+                        <span class="btn-icon"><i class="fa-solid fa-door-open"></i></span>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Loading Section -->
+        <section id="loading-section" class="loading-container hidden">
+            <div class="crystal-ball-wrapper">
+                <div class="crystal-ball">
+                    <div class="crystal-glow"></div>
+                    <div class="crystal-mist"></div>
+                </div>
+                <div class="ball-shadow"></div>
+            </div>
+            <p class="loading-text">星々の配置を読み解いています...</p>
+        </section>
+
+        <!-- Result Section -->
+        <section id="result-section" class="card result-card hidden">
+            <div class="card-body">
+                <div class="result-header">
+                    <div class="result-date" id="result-date">2026.06.17</div>
+                    <div class="result-user"><span id="display-name">ゲスト</span> 様 (<span id="display-zodiac">牡羊座</span>) の今日の運勢</div>
+                </div>
+
+                <div class="main-fortune">
+                    <div class="fortune-rank-container">
+                        <div class="fortune-badge-glow"></div>
+                        <div class="fortune-rank" id="fortune-rank">大吉</div>
+                    </div>
+                    
+                    <div class="fortune-score-container">
+                        <div class="circular-progress">
+                            <svg class="progress-ring" width="120" height="120">
+                                <circle class="progress-ring__background" stroke="rgba(255,255,255,0.05)" stroke-width="8" fill="transparent" r="50" cx="60" cy="60"/>
+                                <circle class="progress-ring__circle" id="progress-circle" stroke="var(--primary-glow)" stroke-width="8" fill="transparent" r="50" cx="60" cy="60"/>
+                            </svg>
+                            <div class="progress-value">
+                                <span id="fortune-score">90</span>
+                                <span class="percent">%</span>
+                            </div>
+                        </div>
+                        <div class="score-label">総合運気度</div>
+                    </div>
+                </div>
+
+                <div class="fortune-advice-box">
+                    <h3><i class="fa-solid fa-comment-dots"></i> 星々からのメッセージ</h3>
+                    <p id="fortune-message">素晴らしい一日になりそうです！何事も自信を持って取り組んでください。</p>
+                </div>
+
+                <div class="details-grid">
+                    <!-- Detail Item: Love -->
+                    <div class="detail-item">
+                        <div class="detail-info">
+                            <span class="detail-label"><i class="fa-solid fa-heart love-color"></i> 恋愛運</span>
+                            <span class="detail-val" id="love-val">80%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar love-bar" id="love-bar" style="width: 80%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Detail Item: Work -->
+                    <div class="detail-item">
+                        <div class="detail-info">
+                            <span class="detail-label"><i class="fa-solid fa-briefcase work-color"></i> 仕事・勉強</span>
+                            <span class="detail-val" id="work-val">85%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar work-bar" id="work-bar" style="width: 85%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Detail Item: Money -->
+                    <div class="detail-item">
+                        <div class="detail-info">
+                            <span class="detail-label"><i class="fa-solid fa-coins money-color"></i> 金運</span>
+                            <span class="detail-val" id="money-val">70%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar money-bar" id="money-bar" style="width: 70%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Detail Item: Health -->
+                    <div class="detail-item">
+                        <div class="detail-info">
+                            <span class="detail-label"><i class="fa-solid fa-notes-medical health-color"></i> 健康運</span>
+                            <span class="detail-val" id="health-val">90%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar health-bar" id="health-bar" style="width: 90%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="luck-factors">
+                    <div class="factor-card">
+                        <div class="factor-icon"><i class="fa-solid fa-gift"></i></div>
+                        <div class="factor-details">
+                            <span class="factor-label">ラッキーアイテム</span>
+                            <span class="factor-value" id="lucky-item">アロマキャンドル</span>
+                        </div>
+                    </div>
+                    <div class="factor-card">
+                        <div class="factor-icon"><i class="fa-solid fa-palette"></i></div>
+                        <div class="factor-details">
+                            <span class="factor-label">ラッキーカラー</span>
+                            <span class="factor-value" id="lucky-color">スターゴールド</span>
+                            <span class="color-preview" id="lucky-color-preview"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button class="btn btn-secondary" onclick="resetApp()">
+                        <span class="btn-text">もう一度占う</span>
+                        <span class="btn-icon"><i class="fa-solid fa-rotate-left"></i></span>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        <p>&copy; 2026 Stella Fortune. Powered by Flask & Starlight.</p>
+    </footer>
+
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
